@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Учёт просрочки - Кондитерская</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 12px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        
+        .header p {
+            margin: 8px 0 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+        
+        .stats-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+            font-size: 11px;
+            flex-wrap: wrap;
+        }
+        
+        .stats-bar span {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        
+        .save-status {
+            position: fixed;
+            bottom: 16px;
+            right: 16px;
+            background: #28a745;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+            font-weight: 500;
+        }
+        
+        .main-content {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .panel {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .panel h2 {
+            margin: 0 0 12px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+            color: #495057;
+            font-size: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .badge {
+            background: #6c757d;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .product-list {
+            max-height: 350px;
+            overflow-y: auto;
+            margin-bottom: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .product-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            transition: all 0.2s;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+        }
+        
+        .product-item.expiring-soon {
+            border-left-color: #ffc107;
+            background: #fffef7;
+        }
+        
+        .product-item.expired {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .product-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+        
+        .product-name {
+            font-weight: 600;
+            font-size: 15px;
+            flex: 1;
+            word-break: break-word;
+        }
+        
+        .product-qty {
+            background: #e9ecef;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+        
+        .product-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid #eee;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .expiry-timer {
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            white-space: nowrap;
+        }
+        
+        .expiry-timer:active {
+            transform: scale(0.96);
+        }
+        
+        .timer-green { color: #28a745; background: #d4edda; }
+        .timer-yellow { color: #856404; background: #fff3cd; }
+        .timer-red { color: #dc3545; background: #f8d7da; }
+        .timer-grey { color: #6c757d; background: #e9ecef; }
+        
+        .input-group {
+            margin-bottom: 14px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #495057;
+            font-size: 13px;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+            -webkit-appearance: none;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+        
+        button:active {
+            opacity: 0.8;
+        }
+        
+        .btn-danger { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .btn-success { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .btn-warning { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+        
+        .result-area {
+            margin-top: 16px;
+            padding: 16px;
+            background: white;
+            border-radius: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .result-area h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .expired-item {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 12px;
+        }
+        
+        .expired-name { font-weight: bold; color: #856404; font-size: 14px; }
+        .expired-qty { font-size: 22px; font-weight: bold; color: #dc3545; margin-top: 5px; }
+        
+        button.small {
+            padding: 10px;
+            font-size: 13px;
+            margin-top: 8px;
+            width: auto;
+            display: inline-block;
+        }
+        
+        .search-box {
+            margin-bottom: 12px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
+            background: white;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        
+        .button-group button {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+        }
+        
+        .refresh-timer {
+            font-size: 10px;
+            color: #999;
+            text-align: right;
+            margin-top: 8px;
+        }
+        
+        /* Модальное окно для телефона */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(3px);
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 0;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
+            animation: modalSlideUp 0.3s ease;
+        }
+        
+        @keyframes modalSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 20px;
+            border-radius: 24px 24px 0 0;
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+        
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+        }
+        
+        .close-modal {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            width: auto;
+            font-size: 15px;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .detail-value {
+            font-weight: bold;
+            font-size: 14px;
+            text-align: right;
+            word-break: break-word;
+        }
+        
+        .countdown-seconds {
+            font-size: 26px;
+            text-align: center;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 16px;
+            margin: 12px 0;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        
+        /* Прокрутка */
+        ::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🍰 Учёт просрочки</h1>
+        <p>Витрина + Накладные</p>
+        <div class="stats-bar">
+            <span>📦 250+ продуктов</span>
+            <span>👆 Нажми на таймер</span>
+            <span>💾 Автосохранение</span>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="panel">
+            <h2>📦 Витрина <span class="badge" id="shelfCount">0</span></h2>
+            <div id="shelfList" class="product-list"></div>
+            
+            <div class="input-group">
+                <label>🔍 Поиск и добавление</label>
+                <input type="text" id="productSearch" placeholder="Найти продукт..." onkeyup="filterProducts()">
+            </div>
+            <div class="input-group">
+                <input type="text" id="shelfProduct" placeholder="Название продукта" list="productList" autocomplete="off">
+                <datalist id="productList"></datalist>
+            </div>
+            <div class="input-group">
+                <input type="number" id="shelfQty" placeholder="Количество (шт.)">
+            </div>
+            <div class="button-group">
+                <button onclick="addToShelf()" style="flex:2">➕ Добавить</button>
+                <button onclick="clearShelf()" style="background:#dc3545; flex:1">🗑</button>
+            </div>
+        </div>
+        
+        <div class="panel">
+            <h2>📄 Поставки <span class="badge" id="shipmentsCount">0</span></h2>
+            <div id="shipmentsList" class="product-list"></div>
+            
+            <div class="input-group">
+                <input type="text" id="shipProduct" placeholder="Название продукта" list="productList" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="date" id="shipDate">
+            </div>
+            <div class="input-group">
+                <input type="number" id="shipQty" placeholder="Количество (шт.)">
+            </div>
+            <div class="button-group">
+                <button onclick="addShipment()" style="flex:2">📄 Добавить</button>
+                <button onclick="clearShipments()" style="background:#dc3545; flex:1">🗑</button>
+            </div>
+        </div>
+    </div>
+    
+    <div style="display: flex; gap: 10px; padding: 0 16px 16px 16px;">
+        <button class="btn-success" onclick="calculateExpired()" style="flex:2">🔥 Рассчитать</button>
+        <button class="btn-warning" onclick="exportData()" style="flex:1">📥</button>
+        <button onclick="clearAll()" style="flex:1; background:#6c757d">🗑</button>
+    </div>
+    
+    <div class="result-area" style="margin: 0 16px 16px 16px; background:#f8f9fa">
+        <h3>📋 Результат</h3>
+        <div id="resultText">Нажмите «Рассчитать»</div>
+    </div>
+</div>
+
+<div id="timeModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">⏰ Детальное время</div>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="modal-footer">
+            <button class="close-modal" onclick="closeModal()">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<div id="saveStatus" class="save-status">💾 Сохранено</div>
+
+<script>
+    const defaultShelfLife = {
+        "Чиабатта": 24, "Бабушкин рецепт": 24, "Хлеб Деревенский": 24, "Хлеб ржаной 100%": 48,
+        "Хлеб зерновой": 48, "Хлеб солодовый с кориандром": 48, "Хлеб бородинский": 48,
+        "Батон нарезной": 24, "Багет французский": 24, "Батон 8 злаков": 48,
+        "Зеленая гречка": 48, "Чесночный": 48, "Зерновой белый": 24, "Багет на закваске": 24,
+        "Круассан натуральный": 36, "Круассан с сыром": 36, "Круассан с ванильным кремом": 36,
+        "Круассан миндальный": 36, "Круассан с шоколадом": 36, "Круассан с творогом": 24,
+        "Эклер шоколадный": 48, "Эклер ванильный": 48, "Торт Наполеон": 72, "Торт Медовик": 72,
+        "Пирожок с картошкой": 36, "Пирожок с курицей": 36, "Сосиска в тесте": 36,
+        "Сэндвич с семгой": 24, "Салат Цезарь": 24, "Киш с курицей": 48, "Макарун ваниль": 96,
+        "Пирожок с капустой": 36, "Пирожок с яблоком": 36, "Бриошь с шоколадом": 36,
+        "Улитка яблочная": 36, "Эклер фисташковый": 48, "Тарталетка с клубникой": 48,
+        "Пирожное Картошка": 72, "Печенье Морковное": 120, "Борщ с говядиной": 48,
+        "Сырники со сметаной": 48, "Омлет": 24, "Блины со сметаной": 24
+    };
+    
+    let shelfLife = { ...defaultShelfLife };
+    let allProducts = Object.keys(shelfLife).sort();
+    let shelf = {};
+    let shipments = [];
+    let updateInterval = null;
+    let currentTimerInterval = null;
+    
+    function getDetailedTimeToExpiry(expiryDate) {
+        const now = new Date();
+        const diffMs = expiryDate - now;
+        if (diffMs <= 0) {
+            const overdueMs = -diffMs;
+            const overdueHours = Math.floor(overdueMs / (1000 * 60 * 60));
+            const overdueMinutes = Math.floor((overdueMs % (1000 * 60 * 60)) / (1000 * 60));
+            return {
+                isExpired: true,
+                text: "ПРОСРОЧЕНО!",
+                overdueHours: overdueHours,
+                overdueMinutes: overdueMinutes,
+                fullText: `Просрочено на ${overdueHours} ч. ${overdueMinutes} мин.`
+            };
+        }
+        const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
+        let result = { isExpired: false, days, hours, minutes, seconds };
+        if (days > 0) {
+            result.text = `${days} д. ${hours} ч.`;
+            result.fullText = `${days} д. ${hours} ч. ${minutes} м. ${seconds} с.`;
+        } else if (hours > 0) {
+            result.text = `${hours} ч. ${minutes} м.`;
+            result.fullText = `${hours} ч. ${minutes} м. ${seconds} с.`;
+        } else if (minutes > 0) {
+            result.text = `${minutes} м. ${seconds} с.`;
+            result.fullText = `${minutes} м. ${seconds} с.`;
+        } else {
+            result.text = `${seconds} с.`;
+            result.fullText = `${seconds} с.`;
+        }
+        return result;
+    }
+    
+    function getShortTimeToExpiry(expiryDate) {
+        const now = new Date();
+        const diffMs = expiryDate - now;
+        if (diffMs <= 0) return { text: "ПРОСРОЧЕНО!", class: "timer-red", hours: 0 };
+        const hoursLeft = diffMs / (1000 * 60 * 60);
+        if (hoursLeft < 1) {
+            const minutesLeft = Math.floor(diffMs / (1000 * 60));
+            return { text: `${minutesLeft} мин.`, class: "timer-red", hours: hoursLeft };
+        } else if (hoursLeft < 6) {
+            return { text: `${Math.floor(hoursLeft)} ч.`, class: "timer-red", hours: hoursLeft };
+        } else if (hoursLeft < 24) {
+            return { text: `${Math.floor(hoursLeft)} ч.`, class: "timer-yellow", hours: hoursLeft };
+        } else {
+            const days = Math.floor(hoursLeft / 24);
+            return { text: `${days} дн.`, class: "timer-green", hours: hoursLeft };
+        }
+    }
+    
+    function getEarliestExpiryForProduct(product, qtyNeeded) {
+        const shipmentsByProduct = [];
+        for (let s of shipments) {
+            if (s.product === product) shipmentsByProduct.push({date: new Date(s.date), qty: s.qty});
+        }
+        shipmentsByProduct.sort((a,b) => a.date - b.date);
+        let remaining = qtyNeeded;
+        let earliestExpiryBatch = null;
+        for (let ship of shipmentsByProduct) {
+            if (remaining <= 0) break;
+            let take = Math.min(remaining, ship.qty);
+            let hours = shelfLife[product] || 48;
+            let expiryDate = new Date(ship.date);
+            expiryDate.setHours(expiryDate.getHours() + hours);
+            if (earliestExpiryBatch === null || expiryDate < earliestExpiryBatch.expiryDate) {
+                earliestExpiryBatch = { date: ship.date, expiryDate: expiryDate, hours: hours };
+            }
+            remaining -= take;
+        }
+        return earliestExpiryBatch;
+    }
+    
+    function updateShelfDisplay() {
+        const container = document.getElementById('shelfList');
+        container.innerHTML = '';
+        const shelfCount = Object.keys(shelf).length;
+        document.getElementById('shelfCount').innerText = shelfCount;
+        if (shelfCount === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#999; padding:16px;">Нет товаров</div>';
+            return;
+        }
+        for (let [product, qty] of Object.entries(shelf)) {
+            const batchInfo = getEarliestExpiryForProduct(product, qty);
+            const shelfLifeHours = shelfLife[product] || 48;
+            let timerHtml = '', statusClass = '';
+            if (!batchInfo) {
+                timerHtml = `<span class="expiry-timer timer-grey" onclick="showTimeDetails('${product}', null, ${qty}, ${shelfLifeHours})">⏰ Нет поставок</span>`;
+            } else {
+                const timer = getShortTimeToExpiry(batchInfo.expiryDate);
+                timerHtml = `<span class="expiry-timer ${timer.class}" onclick="showTimeDetails('${product}', '${batchInfo.expiryDate.toISOString()}', ${qty}, ${shelfLifeHours})">⏰ ${timer.text}</span>`;
+                if (timer.hours <= 0) statusClass = 'expired';
+                else if (timer.hours < 6) statusClass = 'expiring-soon';
+            }
+            container.innerHTML += `
+                <div class="product-item ${statusClass}">
+                    <div class="product-header">
+                        <span class="product-name">${product}</span>
+                        <span class="product-qty">${qty} шт.</span>
+                    </div>
+                    <div class="product-details">
+                        <span>📅 ${shelfLifeHours} ч.</span>
+                        ${timerHtml}
+                    </div>
+                </div>
+            `;
+        }
+    }
+    
+    function updateShipmentsDisplay() {
+        const container = document.getElementById('shipmentsList');
+        container.innerHTML = '';
+        document.getElementById('shipmentsCount').innerText = shipments.length;
+        if (shipments.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#999; padding:16px;">Нет поставок</div>';
+            return;
+        }
+        shipments.forEach((s, idx) => {
+            const expiryDate = new Date(s.date);
+            const hours = shelfLife[s.product] || 48;
+            expiryDate.setHours(expiryDate.getHours() + hours);
+            const timer = getShortTimeToExpiry(expiryDate);
+            container.innerHTML += `
+                <div class="product-item">
+                    <div class="product-header">
+                        <span class="product-name">${s.product}</span>
+                        <span class="product-qty">${s.qty} шт.</span>
+                    </div>
+                    <div class="product-details">
+                        <span>📅 ${s.date}</span>
+                        <span class="expiry-timer ${timer.class}" onclick="showTimeDetailsForShipment('${s.product}', '${expiryDate.toISOString()}', ${hours}, '${s.date}')">⏰ ${timer.text}</span>
+                    </div>
+                    <button class="small" onclick="removeShipment(${idx})" style="background:#dc3545; padding:8px; margin-top:8px;">❌ Удалить</button>
+                </div>
+            `;
+        });
+    }
+    
+    function showTimeDetails(product, expiryDateISO, qty, shelfLifeHours) {
+        const modal = document.getElementById('timeModal');
+        const modalBody = document.getElementById('modalBody');
+        if (!expiryDateISO) {
+            modalBody.innerHTML = `
+                <div class="detail-row"><span class="detail-label">📦 Продукт:</span><span class="detail-value">${product}</span></div>
+                <div class="detail-row"><span class="detail-label">⚠️ Статус:</span><span class="detail-value">Нет поставок</span></div>
+                <div class="detail-row"><span class="detail-label">📅 Срок:</span><span class="detail-value">${shelfLifeHours} ч.</span></div>
+                <div style="text-align:center; padding:16px; color:#999;">Добавьте поставки</div>
+            `;
+            modal.style.display = 'block';
+            return;
+        }
+        const expiryDate = new Date(expiryDateISO);
+        function updateModalTime() {
+            const detailed = getDetailedTimeToExpiry(expiryDate);
+            const now = new Date();
+            let statusHtml = detailed.isExpired ?
+                `<div class="countdown-seconds" style="background:#f8d7da; color:#dc3545;">⚠️ ${detailed.fullText}</div>` :
+                `<div class="countdown-seconds" style="background:#d4edda; color:#28a745;">${detailed.fullText}</div>`;
+            modalBody.innerHTML = `
+                <div class="detail-row"><span class="detail-label">📦 Продукт:</span><span class="detail-value">${product}</span></div>
+                <div class="detail-row"><span class="detail-label">📅 Срок:</span><span class="detail-value">${shelfLifeHours} ч.</span></div>
+                <div class="detail-row"><span class="detail-label">📆 Истекает:</span><span class="detail-value">${expiryDate.toLocaleString('ru-RU')}</span></div>
+                <div class="detail-row"><span class="detail-label">🕐 Сейчас:</span><span class="detail-value">${now.toLocaleString('ru-RU')}</span></div>
+                ${statusHtml}
+                <div class="detail-row"><span class="detail-label">📦 На витрине:</span><span class="detail-value">${qty} шт.</span></div>
+            `;
+        }
+        updateModalTime();
+        modal.style.display = 'block';
+        if (currentTimerInterval) clearInterval(currentTimerInterval);
+        currentTimerInterval = setInterval(() => {
+            if (modal.style.display === 'block') updateModalTime();
+            else clearInterval(currentTimerInterval);
+        }, 1000);
+    }
+    
+    function showTimeDetailsForShipment(product, expiryDateISO, hours, productionDate) {
+        const modal = document.getElementById('timeModal');
+        const modalBody = document.getElementById('modalBody');
+        const expiryDate = new Date(expiryDateISO);
+        function updateModalTime() {
+            const detailed = getDetailedTimeToExpiry(expiryDate);
+            const now = new Date();
+            let statusHtml = detailed.isExpired ?
+                `<div class="countdown-seconds" style="background:#f8d7da; color:#dc3545;">⚠️ ${detailed.fullText}</div>` :
+                `<div class="countdown-seconds" style="background:#d4edda; color:#28a745;">${detailed.fullText}</div>`;
+            modalBody.innerHTML = `
+                <div class="detail-row"><span class="detail-label">📦 Продукт:</span><span class="detail-value">${product}</span></div>
+                <div class="detail-row"><span class="detail-label">📅 Срок:</span><span class="detail-value">${hours} ч.</span></div>
+                <div class="detail-row"><span class="detail-label">🏭 Произведён:</span><span class="detail-value">${productionDate}</span></div>
+                <div class="detail-row"><span class="detail-label">📆 Истекает:</span><span class="detail-value">${expiryDate.toLocaleString('ru-RU')}</span></div>
+                <div class="detail-row"><span class="detail-label">🕐 Сейчас:</span><span class="detail-value">${now.toLocaleString('ru-RU')}</span></div>
+                ${statusHtml}
+            `;
+        }
+        updateModalTime();
+        modal.style.display = 'block';
+        if (currentTimerInterval) clearInterval(currentTimerInterval);
+        currentTimerInterval = setInterval(() => {
+            if (modal.style.display === 'block') updateModalTime();
+            else clearInterval(currentTimerInterval);
+        }, 1000);
+    }
+    
+    function closeModal() {
+        document.getElementById('timeModal').style.display = 'none';
+        if (currentTimerInterval) { clearInterval(currentTimerInterval); currentTimerInterval = null; }
+    }
+    
+    function showSaveStatus() {
+        const status = document.getElementById('saveStatus');
+        status.style.opacity = '1';
+        setTimeout(() => status.style.opacity = '0', 1500);
+    }
+    
+    function saveAllData() {
+        const customProductsData = {};
+        for (let product of Object.keys(shelfLife)) {
+            if (!defaultShelfLife.hasOwnProperty(product)) customProductsData[product] = shelfLife[product];
+        }
+        localStorage.setItem('expiry_shelf', JSON.stringify(shelf));
+        localStorage.setItem('expiry_shipments', JSON.stringify(shipments));
+        localStorage.setItem('expiry_custom_products', JSON.stringify(customProductsData));
+        showSaveStatus();
+    }
+    
+    function loadAllData() {
+        const savedShelf = localStorage.getItem('expiry_shelf');
+        if (savedShelf) shelf = JSON.parse(savedShelf);
+        const savedShipments = localStorage.getItem('expiry_shipments');
+        if (savedShipments) shipments = JSON.parse(savedShipments);
+        const customProducts = localStorage.getItem('expiry_custom_products');
+        if (customProducts) {
+            const customData = JSON.parse(customProducts);
+            for (let [product, hours] of Object.entries(customData)) {
+                shelfLife[product] = hours;
+                if (!allProducts.includes(product)) allProducts.push(product);
+            }
+            allProducts.sort();
+        }
+    }
+    
+    function updateDatalist() {
+        const datalist = document.getElementById('productList');
+        datalist.innerHTML = '';
+        allProducts.slice(0, 150).forEach(p => {
+            const option = document.createElement('option');
+            option.value = p;
+            datalist.appendChild(option);
+        });
+    }
+    
+    function filterProducts() {
+        const search = document.getElementById('productSearch').value.toLowerCase();
+        const datalist = document.getElementById('productList');
+        datalist.innerHTML = '';
+        const filtered = allProducts.filter(p => p.toLowerCase().includes(search));
+        filtered.slice(0, 80).forEach(p => {
+            const option = document.createElement('option');
+            option.value = p;
+            datalist.appendChild(option);
+        });
+    }
+    
+    function findProduct(name) {
+        const normalized = name.toLowerCase().trim();
+        for (let key of allProducts) {
+            if (key.toLowerCase() === normalized) return key;
+        }
+        for (let key of allProducts) {
+            if (key.toLowerCase().includes(normalized)) return key;
+        }
+        return null;
+    }
+    
+    function addToShelf() {
+        let name = document.getElementById('shelfProduct').value.trim();
+        let qty = parseInt(document.getElementById('shelfQty').value);
+        if (!name || isNaN(qty) || qty <= 0) { alert('Введите название и количество'); return; }
+        let product = findProduct(name);
+        if (!product) {
+            if (confirm(`Продукт "${name}" не найден. Добавить со сроком 48 ч.?`)) {
+                product = name;
+                shelfLife[product] = 48;
+                allProducts.push(product);
+                allProducts.sort();
+                updateDatalist();
+            } else return;
+        }
+        shelf[product] = (shelf[product] || 0) + qty;
+        updateShelfDisplay();
+        document.getElementById('shelfProduct').value = '';
+        document.getElementById('shelfQty').value = '';
+        saveAllData();
+    }
+    
+    function addShipment() {
+        let name = document.getElementById('shipProduct').value.trim();
+        let date = document.getElementById('shipDate').value;
+        let qty = parseInt(document.getElementById('shipQty').value);
+        if (!name || !date || isNaN(qty) || qty <= 0) { alert('Заполните все поля'); return; }
+        let product = findProduct(name);
+        if (!product) {
+            if (confirm(`Продукт "${name}" не найден. Добавить со сроком 48 ч.?`)) {
+                product = name;
+                shelfLife[product] = 48;
+                allProducts.push(product);
+                allProducts.sort();
+                updateDatalist();
+            } else return;
+        }
+        shipments.push({product, date, qty});
+        updateShipmentsDisplay();
+        updateShelfDisplay();
+        document.getElementById('shipProduct').value = '';
+        document.getElementById('shipDate').value = '';
+        document.getElementById('shipQty').value = '';
+        saveAllData();
+    }
+    
+    function removeShipment(idx) { shipments.splice(idx, 1); updateShipmentsDisplay(); updateShelfDisplay(); saveAllData(); }
+    function clearShelf() { if (confirm('Очистить витрину?')) { shelf = {}; updateShelfDisplay(); saveAllData(); } }
+    function clearShipments() { if (confirm('Очистить поставки?')) { shipments = []; updateShipmentsDisplay(); updateShelfDisplay(); saveAllData(); } }
+    
+    function calculateExpired() {
+        const today = new Date(); today.setHours(0,0,0,0);
+        let shipmentsByProduct = {};
+        for (let s of shipments) {
+            if (!shipmentsByProduct[s.product]) shipmentsByProduct[s.product] = [];
+            shipmentsByProduct[s.product].push({date: new Date(s.date), qty: s.qty});
+        }
+        for (let prod in shipmentsByProduct) shipmentsByProduct[prod].sort((a,b) => a.date - b.date);
+        let expired = {};
+        for (let [product, shelfQty] of Object.entries(shelf)) {
+            if (!shipmentsByProduct[product]) continue;
+            let remaining = shelfQty, expiredQty = 0;
+            for (let ship of shipmentsByProduct[product]) {
+                if (remaining <= 0) break;
+                let take = Math.min(remaining, ship.qty);
+                let hours = shelfLife[product] || 48;
+                let expiryDate = new Date(ship.date);
+                expiryDate.setHours(expiryDate.getHours() + hours);
+                if (today > expiryDate) expiredQty += take;
+                remaining -= take;
+            }
+            if (expiredQty > 0) expired[product] = expiredQty;
+        }
+        const resultDiv = document.getElementById('resultText');
+        if (Object.keys(expired).length === 0) {
+            resultDiv.innerHTML = '<div style="text-align:center; color:green; padding:16px;">✅ Просрочки нет!</div>';
+        } else {
+            let html = '<div style="background:#fff3cd; padding:12px; border-radius:12px;">';
+            html += '<h3 style="color:#856404; margin:0 0 12px 0;">⚠️ СПИСАТЬ СЕГОДНЯ:</h3>';
+            for (let [product, qty] of Object.entries(expired)) {
+                html += `<div class="expired-item"><div class="expired-name">📦 ${product}</div><div class="expired-qty">Списать: ${qty} шт.</div></div>`;
+            }
+            html += `<button onclick="confirmWriteoff(${JSON.stringify(expired).replace(/"/g, '&quot;')})" style="background:#28a745; margin-top:12px;">✅ ПОДТВЕРДИТЬ СПИСАНИЕ</button></div>`;
+            resultDiv.innerHTML = html;
+        }
+    }
+    
+    function confirmWriteoff(expired) {
+        for (let product in expired) {
+            if (shelf[product]) { shelf[product] -= expired[product]; if (shelf[product] <= 0) delete shelf[product]; }
+        }
+        updateShelfDisplay();
+        saveAllData();
+        document.getElementById('resultText').innerHTML = '<div style="text-align:center; color:green; padding:16px;">✅ Списание выполнено!</div>';
+        setTimeout(() => document.getElementById('resultText').innerHTML = 'Нажмите «Рассчитать»', 2000);
+    }
+    
+    function exportData() {
+        const exportObj = { shelf, shipments, exportDate: new Date().toISOString() };
+        const dataStr = JSON.stringify(exportObj, null, 2);
+        const blob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `expiry_export_${new Date().toISOString().slice(0,19)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('Данные экспортированы!');
+    }
+    
+    function clearAll() {
+        if (confirm('Очистить ВСЕ данные?')) {
+            shelf = {};
+            shipments = [];
+            updateShelfDisplay();
+            updateShipmentsDisplay();
+            document.getElementById('resultText').innerHTML = 'Нажмите «Рассчитать»';
+            saveAllData();
+        }
+    }
+    
+    function startAutoRefresh() {
+        if (updateInterval) clearInterval(updateInterval);
+        updateInterval = setInterval(() => { updateShelfDisplay(); updateShipmentsDisplay(); }, 60000);
+    }
+    
+    window.onclick = function(event) {
+        const modal = document.getElementById('timeModal');
+        if (event.target === modal) closeModal();
+    }
+    
+    document.getElementById('shipDate').valueAsDate = new Date();
+    loadAllData();
+    updateDatalist();
+    updateShelfDisplay();
+    updateShipmentsDisplay();
+    startAutoRefresh();
+</script>
+</body>
+</html>
