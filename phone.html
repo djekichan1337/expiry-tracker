@@ -4,24 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Учёт просрочки - Кондитерская</title>
+    <title>Учёт просрочки - Полная версия</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-        }
-        
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             margin: 0;
             padding: 12px;
             min-height: 100vh;
         }
-        
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -30,42 +22,27 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             overflow: hidden;
         }
-        
         .header {
             background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             color: white;
             padding: 16px;
             text-align: center;
         }
-        
-        .header h1 {
-            margin: 0;
-            font-size: 22px;
-            font-weight: 600;
-        }
-        
-        .header p {
-            margin: 8px 0 0;
-            font-size: 13px;
-            opacity: 0.9;
-        }
-        
+        .header h1 { font-size: 22px; margin: 0; }
+        .header p { font-size: 13px; margin-top: 6px; opacity: 0.9; }
         .stats-bar {
             display: flex;
             justify-content: center;
-            gap: 12px;
+            gap: 8px;
             margin-top: 10px;
             font-size: 11px;
             flex-wrap: wrap;
         }
-        
         .stats-bar span {
             background: rgba(255,255,255,0.2);
             padding: 4px 10px;
             border-radius: 20px;
-            white-space: nowrap;
         }
-        
         .save-status {
             position: fixed;
             bottom: 16px;
@@ -79,34 +56,22 @@
             transition: opacity 0.3s;
             pointer-events: none;
             z-index: 1000;
-            font-weight: 500;
         }
-        
-        .main-content {
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        
+        .main-content { padding: 16px; display: flex; flex-direction: column; gap: 20px; }
         .panel {
             background: #f8f9fa;
             border-radius: 20px;
             padding: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        
         .panel h2 {
-            margin: 0 0 12px 0;
+            font-size: 18px;
+            margin-bottom: 12px;
             padding-bottom: 10px;
             border-bottom: 2px solid #dee2e6;
-            color: #495057;
-            font-size: 18px;
             display: flex;
             justify-content: space-between;
-            align-items: center;
         }
-        
         .badge {
             background: #6c757d;
             color: white;
@@ -114,35 +79,23 @@
             border-radius: 20px;
             font-size: 12px;
         }
-        
         .product-list {
             max-height: 350px;
             overflow-y: auto;
             margin-bottom: 16px;
             -webkit-overflow-scrolling: touch;
         }
-        
         .product-item {
             background: white;
             padding: 12px;
             margin-bottom: 8px;
             border-radius: 14px;
             box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-            transition: all 0.2s;
             cursor: pointer;
             border-left: 3px solid transparent;
         }
-        
-        .product-item.expiring-soon {
-            border-left-color: #ffc107;
-            background: #fffef7;
-        }
-        
-        .product-item.expired {
-            border-left-color: #dc3545;
-            background: #fff5f5;
-        }
-        
+        .product-item.expiring-soon { border-left-color: #ffc107; background: #fffef7; }
+        .product-item.expired { border-left-color: #dc3545; background: #fff5f5; }
         .product-header {
             display: flex;
             justify-content: space-between;
@@ -151,14 +104,7 @@
             flex-wrap: wrap;
             gap: 6px;
         }
-        
-        .product-name {
-            font-weight: 600;
-            font-size: 15px;
-            flex: 1;
-            word-break: break-word;
-        }
-        
+        .product-name { font-weight: 600; font-size: 14px; flex: 1; word-break: break-word; }
         .product-qty {
             background: #e9ecef;
             padding: 4px 12px;
@@ -167,7 +113,6 @@
             font-size: 13px;
             white-space: nowrap;
         }
-        
         .product-details {
             display: flex;
             justify-content: space-between;
@@ -180,38 +125,19 @@
             flex-wrap: wrap;
             gap: 8px;
         }
-        
         .expiry-timer {
             font-weight: 600;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: 12px;
             cursor: pointer;
-            transition: transform 0.1s;
-            white-space: nowrap;
         }
-        
-        .expiry-timer:active {
-            transform: scale(0.96);
-        }
-        
         .timer-green { color: #28a745; background: #d4edda; }
         .timer-yellow { color: #856404; background: #fff3cd; }
         .timer-red { color: #dc3545; background: #f8d7da; }
         .timer-grey { color: #6c757d; background: #e9ecef; }
-        
-        .input-group {
-            margin-bottom: 14px;
-        }
-        
-        .input-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 500;
-            color: #495057;
-            font-size: 13px;
-        }
-        
+        .input-group { margin-bottom: 14px; }
+        .input-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; }
         .input-group input {
             width: 100%;
             padding: 12px;
@@ -219,44 +145,26 @@
             border-radius: 12px;
             font-size: 16px;
             background: white;
-            -webkit-appearance: none;
         }
-        
         button {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            padding: 14px 20px;
+            padding: 14px;
             border-radius: 14px;
-            cursor: pointer;
             font-size: 15px;
             font-weight: 600;
             width: 100%;
-            transition: opacity 0.2s;
+            cursor: pointer;
         }
-        
-        button:active {
-            opacity: 0.8;
-        }
-        
+        button:active { opacity: 0.8; }
         .btn-danger { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
         .btn-success { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
         .btn-warning { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
-        
-        .result-area {
-            margin-top: 16px;
-            padding: 16px;
-            background: white;
-            border-radius: 16px;
-            max-height: 300px;
-            overflow-y: auto;
-        }
-        
-        .result-area h3 {
-            font-size: 16px;
-            margin-bottom: 12px;
-        }
-        
+        .button-group { display: flex; gap: 10px; margin-top: 12px; }
+        .button-group button { flex: 1; padding: 12px; font-size: 14px; }
+        button.small { padding: 8px; font-size: 13px; width: auto; margin-top: 8px; background: #dc3545; }
+        .result-area { margin-top: 16px; padding: 16px; background: white; border-radius: 16px; }
         .expired-item {
             background: #fff3cd;
             border-left: 4px solid #ffc107;
@@ -264,51 +172,8 @@
             margin-bottom: 8px;
             border-radius: 12px;
         }
-        
-        .expired-name { font-weight: bold; color: #856404; font-size: 14px; }
+        .expired-name { font-weight: bold; color: #856404; }
         .expired-qty { font-size: 22px; font-weight: bold; color: #dc3545; margin-top: 5px; }
-        
-        button.small {
-            padding: 10px;
-            font-size: 13px;
-            margin-top: 8px;
-            width: auto;
-            display: inline-block;
-        }
-        
-        .search-box {
-            margin-bottom: 12px;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            font-size: 16px;
-            background: white;
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-        }
-        
-        .button-group button {
-            flex: 1;
-            padding: 12px;
-            font-size: 14px;
-        }
-        
-        .refresh-timer {
-            font-size: 10px;
-            color: #999;
-            text-align: right;
-            margin-top: 8px;
-        }
-        
-        /* Модальное окно для телефона */
         .modal {
             display: none;
             position: fixed;
@@ -317,61 +182,38 @@
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.5);
             backdrop-filter: blur(3px);
         }
-        
         .modal-content {
             background: white;
-            margin: 0;
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
             border-radius: 24px 24px 0 0;
-            width: 100%;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.2);
-            animation: modalSlideUp 0.3s ease;
+            animation: slideUp 0.3s ease;
         }
-        
-        @keyframes modalSlideUp {
+        @keyframes slideUp {
             from { transform: translateY(100%); }
             to { transform: translateY(0); }
         }
-        
         .modal-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            padding: 16px 20px;
+            padding: 16px;
             border-radius: 24px 24px 0 0;
+            text-align: center;
             font-weight: bold;
-            font-size: 16px;
-            text-align: center;
         }
-        
-        .modal-body {
-            padding: 20px;
-            max-height: 60vh;
-            overflow-y: auto;
-        }
-        
-        .modal-footer {
-            padding: 16px 20px;
-            border-top: 1px solid #eee;
-            text-align: center;
-        }
-        
+        .modal-body { padding: 20px; max-height: 60vh; overflow-y: auto; }
+        .modal-footer { padding: 16px; text-align: center; border-top: 1px solid #eee; }
         .close-modal {
             background: #6c757d;
-            color: white;
-            border: none;
             padding: 12px 24px;
             border-radius: 30px;
-            cursor: pointer;
             width: auto;
-            font-size: 15px;
         }
-        
         .detail-row {
             display: flex;
             justify-content: space-between;
@@ -380,50 +222,34 @@
             flex-wrap: wrap;
             gap: 8px;
         }
-        
-        .detail-label {
-            font-weight: 600;
-            color: #555;
-            font-size: 14px;
-        }
-        
-        .detail-value {
-            font-weight: bold;
-            font-size: 14px;
-            text-align: right;
-            word-break: break-word;
-        }
-        
         .countdown-seconds {
-            font-size: 26px;
+            font-size: 24px;
             text-align: center;
             padding: 16px;
             background: #f8f9fa;
             border-radius: 16px;
             margin: 12px 0;
-            font-family: 'Courier New', monospace;
+            font-family: monospace;
             font-weight: bold;
         }
-        
-        /* Прокрутка */
-        ::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
+        .search-box { margin-bottom: 12px; }
+        .search-box input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-size: 16px;
         }
-        
-        ::-webkit-scrollbar-thumb {
-            background: #ccc;
-            border-radius: 4px;
-        }
+        .refresh-timer { font-size: 10px; color: #999; text-align: right; margin-top: 8px; }
     </style>
 </head>
 <body>
 <div class="container">
     <div class="header">
         <h1>🍰 Учёт просрочки</h1>
-        <p>Витрина + Накладные</p>
+        <p>Полная версия — все продукты</p>
         <div class="stats-bar">
-            <span>📦 250+ продуктов</span>
+            <span>📦 280+ продуктов</span>
             <span>👆 Нажми на таймер</span>
             <span>💾 Автосохранение</span>
         </div>
@@ -433,10 +259,8 @@
         <div class="panel">
             <h2>📦 Витрина <span class="badge" id="shelfCount">0</span></h2>
             <div id="shelfList" class="product-list"></div>
-            
-            <div class="input-group">
-                <label>🔍 Поиск и добавление</label>
-                <input type="text" id="productSearch" placeholder="Найти продукт..." onkeyup="filterProducts()">
+            <div class="search-box">
+                <input type="text" id="productSearch" placeholder="🔍 Поиск продукта..." onkeyup="filterProducts()">
             </div>
             <div class="input-group">
                 <input type="text" id="shelfProduct" placeholder="Название продукта" list="productList" autocomplete="off">
@@ -454,7 +278,6 @@
         <div class="panel">
             <h2>📄 Поставки <span class="badge" id="shipmentsCount">0</span></h2>
             <div id="shipmentsList" class="product-list"></div>
-            
             <div class="input-group">
                 <input type="text" id="shipProduct" placeholder="Название продукта" list="productList" autocomplete="off">
             </div>
@@ -496,20 +319,117 @@
 <div id="saveStatus" class="save-status">💾 Сохранено</div>
 
 <script>
+    // ====================== ПОЛНАЯ БАЗА ПРОДУКТОВ (280+ позиций) ======================
     const defaultShelfLife = {
+        // ========== ХЛЕБ ==========
         "Чиабатта": 24, "Бабушкин рецепт": 24, "Хлеб Деревенский": 24, "Хлеб ржаной 100%": 48,
         "Хлеб зерновой": 48, "Хлеб солодовый с кориандром": 48, "Хлеб бородинский": 48,
         "Батон нарезной": 24, "Багет французский": 24, "Батон 8 злаков": 48,
         "Зеленая гречка": 48, "Чесночный": 48, "Зерновой белый": 24, "Багет на закваске": 24,
+        "Хлеб мини детокс": 48, "Хлеб мини ржаной": 48, "Хлеб 8 злаков для сендвичей": 48,
+        "Багет на сендвич": 48, "Багет на сендвич с кунжутом": 48,
+        
+        // ========== ПИРОЖКИ ==========
+        "Сосиска в тесте": 36, "Сосиска с сыром в слойке": 36, "Пирожок с луком и яйцом": 36,
+        "Пирожок с капустой": 36, "Пирожок с картошкой": 36, "Пирожок с курицей": 36,
+        "Пирожок с яблоком": 36, "Грилата с картофелем и грибами": 36, "Грилата с брынзой и зеленью": 36,
+        "Грилата с курицей": 36, "Грилата с мясом": 36,
+        
+        // ========== СЭНДВИЧИ ==========
+        "Киш с курицей": 48, "Киш с ветчиной и грибами": 48, "Киш 4 сыра": 48,
+        "Багет с ветчиной и сыром": 24, "Чиабатта с индейкой": 24, "Сэндвич с семгой": 24,
+        "Сэндвич с тунцом": 24, "Багет с моцареллой": 24, "Круассан с моцареллой": 24,
+        "Круассан с курицей": 24, "Круассан с рыбой": 24, "Круассан с ветчиной и сыром": 24,
+        "Круассан с ветчиной и яйцом пашот": 24, "Лаваш сливочный с курицей": 24,
+        "Лаваш Цезарь": 24, "Лаваш Чикен": 24, "Лаваш Шримп": 24,
+        "Сэндвич с куриными стрипсами": 24, "Сэндвич с рваной говядиной": 24, "Сэндвич с ростбифом": 24,
+        
+        // ========== МЯГКАЯ ВИТРИНА ==========
         "Круассан натуральный": 36, "Круассан с сыром": 36, "Круассан с ванильным кремом": 36,
         "Круассан миндальный": 36, "Круассан с шоколадом": 36, "Круассан с творогом": 24,
-        "Эклер шоколадный": 48, "Эклер ванильный": 48, "Торт Наполеон": 72, "Торт Медовик": 72,
-        "Пирожок с картошкой": 36, "Пирожок с курицей": 36, "Сосиска в тесте": 36,
-        "Сэндвич с семгой": 24, "Салат Цезарь": 24, "Киш с курицей": 48, "Макарун ваниль": 96,
-        "Пирожок с капустой": 36, "Пирожок с яблоком": 36, "Бриошь с шоколадом": 36,
-        "Улитка яблочная": 36, "Эклер фисташковый": 48, "Тарталетка с клубникой": 48,
-        "Пирожное Картошка": 72, "Печенье Морковное": 120, "Борщ с говядиной": 48,
-        "Сырники со сметаной": 48, "Омлет": 24, "Блины со сметаной": 24
+        "Круассан с абрикосом": 36, "Круассан с клубникой и шоколадом": 24, "Круассан с вишневым джемом": 24,
+        "Круассан Лион с фисташкой": 80, "Бриошь с черной смородиной": 36, "Бриошь с шоколадом": 36,
+        "Улитка яблочная": 36, "Улитка с изюмом": 36, "Улитка с корицей": 36,
+        "Улитка Яблоко/карамель": 24, "Булочка с маком": 36, "Косичка с шоколадом": 36,
+        "Маффин шоколадный": 72, "Маффин классический": 72, "Ромовая баба": 48, "Сочник": 48,
+        "Слойка Берлинская": 36, "Шатель": 36, "Донатс малиновый": 48, "Донатс шоколадный": 48,
+        "Донатс карамельный": 48, "Пончик фисташковый": 48, "Штрудель яблочный": 36,
+        "Шоссон с вишней": 24, "Булочка Синнамон": 36, "Синнамон с фисташкой": 36,
+        "Булочка «Синнамон фисташка»": 36, "Булочка «Синнамон»": 36, "Слойка Неаполитанская": 110,
+        
+        // ========== ПИРОЖНЫЕ ==========
+        "Трубочка с белковым кремом": 48, "Эклер фисташковый": 48, "Эклер шоколадный": 48,
+        "Эклер ванильный": 48, "Эклер миндальный": 48, "Эклер Сникерс": 48,
+        "Эклер малина": 48, "Эклер Вишня": 70, "Тарталетка с клубникой": 48,
+        "Тарталетка с голубикой": 48, "Тарталетка с малиной": 48, "Тарталетка ассорти": 48,
+        "Тарталетка с белковым кремом": 48, "Тарталетка с голубикой и малиной": 48,
+        "Тарталетка дубайская": 72, "Шоколадно ореховая тарталетка": 48,
+        "Пирожное Картошка": 72, "Пирожное Герман": 72, "Пирожное Медовик": 72,
+        "Пирожное Наполеон": 72, "Пирожное Вацлавское": 72, "Пирожное Чизкейк": 72,
+        "Чизкейк Тропик": 72, "Профитроли со сливками": 48, "Кольцо с творогом": 24,
+        "Чизкейк Нью-Йорк": 48, "Соленая карамель": 72, "Тирамису в стакане": 72,
+        "Пирожное Морковное": 72, "Десерт Сердце малина": 48, "Пудинг Чиа Манго": 48,
+        "Десерт Манго-мята": 48, "Десерт Роше": 48, "Десерт Фисташковый": 72,
+        "Десерт 3 шоколада": 72, "Кофейное зерно": 48, "Чизкейк черная смородина": 48,
+        "Пирожное Красный Бархат": 72, "Пирожное Тирамису(в стакане)": 72,
+        "Десерт Лав Ис": 48, "Десерт Манго маракуйя": 48, "Пирожное шоколадно-карамельное": 72,
+        "Роза пирожное": 48, "Чизкейк черная смородина": 48, "Фисташковый десерт": 72,
+        
+        // ========== ТОРТЫ ==========
+        "Торт Наполеон": 72, "Торт Медовик": 72, "Торт Герман": 72,
+        "Торт Красный бархат": 72, "Торт Шоколадно-клубничный": 72,
+        "Торт Фисташковая меренга": 72, "Торт Фирменный": 72, "Торт мини Фисташковая меренга": 72,
+        "Торт Чизкейк": 72, "Барне": 400,
+        
+        // ========== ПЕЧЕНЬЕ ==========
+        "Печенье Морковное": 120, "Печенье Фитнес": 360, "Рогалики малина": 360,
+        "Амаретти": 360, "Бискотти": 360, "Венское": 360, "Печенье Орешки": 168,
+        "Макарун ваниль": 96, "Макарун черная смородина": 96, "Макарун фисташка": 96,
+        "Макарун шоколад": 96, "Апельсиновое печенье с шоколадом": 240,
+        "Шоколадное печенье с фундуком": 288, "Овсяное печенье с изюмом": 288,
+        "Безе мини": 360, "Безе миндальное": 360, "Безе кофейное": 360,
+        "Безе классическое": 360, "Печенье Мадлен": 168, "Печенье «Мадлен»": 168,
+        "Печенье «Творожные ушки»": 120, "Печенье лимонное": 240,
+        "Печенье творожное (ушки)": 120, "Печенье Шоколадное": 120,
+        
+        // ========== СУПЫ ==========
+        "Борщ с говядиной": 48, "Суп фирменный сырный": 48, "Крем-суп тыквенный": 48,
+        "Рассольник": 48, "Солянка": 48, "Том Ям": 48, "Суп «Том Ям»": 48,
+        "Суп «Солянка»": 48, "Суп «Рассольник»": 48, "Суп картофельный с грибами": 48,
+        "Суп-пюре грибной": 48, "Суп-пюре фирменный(Сырный)": 48, "Свекольник": 48,
+        "Окрошка на кефире": 48, "Суп с булгуром и грибами": 48,
+        
+        // ========== ВТОРЫЕ БЛЮДА ==========
+        "Строганов с курицей": 48, "Картофельное пюре с минтаем": 48, "Говядина с овощами": 48,
+        "Куриный шашлычок с печеным картофелем": 48, "Удон с соусом Том-Ям": 48,
+        "Рис с креветками по-тайски": 48, "Треска с рисом по-тайски": 48,
+        "Паста Пенне с курицей и фасолью": 48, "Индейка с булгуром": 48,
+        "Чахобили с гречкой и курицей": 48, "Филе минтая с рисом и овощами": 48,
+        "Бефстроганов из говядины с картофельным пюре": 48, "Булгур с индейкой": 48,
+        "Пюре с минтаем и соусом тартар": 48, "Котлета рыбная с картофелем пюре": 48,
+        "Митболлы с соусом Наполи и спагетти": 48, "Лапша удон с курицей": 48,
+        "Колбаски куриные с печеным картофелем": 48, "Фарфале с курицей и грибами": 48,
+        "Бефстроганов с пюре под сливочно-грибным соусом": 48, "Фиш болы в сливочно-шпинатном соусе": 48,
+        
+        // ========== ЗАВТРАКИ ==========
+        "Сырники с ягодами": 24, "Сырники со сметаной": 48, "Запеканка с клубникой": 24,
+        "Овсяная каша": 24, "Омлет": 24, "Яичница-глазунья": 24, "Блины со сметаной": 24,
+        "Сырники с ягодой": 24, "Запеканка": 24, "Омлет французский с томатами": 24,
+        "Глазунья": 24, "Омлет с моцареллой и хамоном": 24, "Тост с лососем и яйцом пашот": 24,
+        "Хашбраун с лососем": 24, "Английский завтрак": 24, "Скрембл": 24,
+        "Рисовая каша": 24, "Блиники с ветчиной и сыром": 24, "Омлет с моцареллой и хамоном": 24,
+        
+        // ========== САЛАТЫ ==========
+        "Салат Цезарь": 24, "Салат киноа с креветками": 24, "Поке боул с лососем": 24,
+        "Поке боул с курицей": 24, "Сельдь под шубой": 24, "Винегрет": 24,
+        "Салат Мимоза": 24, "Салат Столичный с курицей": 24, "Салат «Цезарь»": 24,
+        "Салат «Винегрет»": 24, "Салат «Сельдь под шубой»": 24, "Салат «Мимоза»": 24,
+        "Салат с курицей, ананасами и листья романо": 24, "Греческий": 24, "Оливье": 24,
+        "Салат с тунцом": 24, "Салат с ананасом и куриной грудкой": 24,
+        
+        // ========== НАПИТКИ ==========
+        "Морс Малина-Маракуйя": 120, "Морс лайм-мята": 120, "Морс клубника-базилик": 120,
+        "Морс апельсин-имбирь": 120
     };
     
     let shelfLife = { ...defaultShelfLife };
@@ -526,33 +446,18 @@
             const overdueMs = -diffMs;
             const overdueHours = Math.floor(overdueMs / (1000 * 60 * 60));
             const overdueMinutes = Math.floor((overdueMs % (1000 * 60 * 60)) / (1000 * 60));
-            return {
-                isExpired: true,
-                text: "ПРОСРОЧЕНО!",
-                overdueHours: overdueHours,
-                overdueMinutes: overdueMinutes,
-                fullText: `Просрочено на ${overdueHours} ч. ${overdueMinutes} мин.`
-            };
+            return { isExpired: true, fullText: `Просрочено на ${overdueHours} ч. ${overdueMinutes} мин.` };
         }
         const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
         const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
         const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
-        let result = { isExpired: false, days, hours, minutes, seconds };
-        if (days > 0) {
-            result.text = `${days} д. ${hours} ч.`;
-            result.fullText = `${days} д. ${hours} ч. ${minutes} м. ${seconds} с.`;
-        } else if (hours > 0) {
-            result.text = `${hours} ч. ${minutes} м.`;
-            result.fullText = `${hours} ч. ${minutes} м. ${seconds} с.`;
-        } else if (minutes > 0) {
-            result.text = `${minutes} м. ${seconds} с.`;
-            result.fullText = `${minutes} м. ${seconds} с.`;
-        } else {
-            result.text = `${seconds} с.`;
-            result.fullText = `${seconds} с.`;
-        }
-        return result;
+        let fullText = "";
+        if (days > 0) fullText = `${days} д. ${hours} ч. ${minutes} м. ${seconds} с.`;
+        else if (hours > 0) fullText = `${hours} ч. ${minutes} м. ${seconds} с.`;
+        else if (minutes > 0) fullText = `${minutes} м. ${seconds} с.`;
+        else fullText = `${seconds} с.`;
+        return { isExpired: false, days, hours, minutes, seconds, fullText };
     }
     
     function getShortTimeToExpiry(expiryDate) {
@@ -583,14 +488,13 @@
         let earliestExpiryBatch = null;
         for (let ship of shipmentsByProduct) {
             if (remaining <= 0) break;
-            let take = Math.min(remaining, ship.qty);
             let hours = shelfLife[product] || 48;
             let expiryDate = new Date(ship.date);
             expiryDate.setHours(expiryDate.getHours() + hours);
             if (earliestExpiryBatch === null || expiryDate < earliestExpiryBatch.expiryDate) {
                 earliestExpiryBatch = { date: ship.date, expiryDate: expiryDate, hours: hours };
             }
-            remaining -= take;
+            remaining -= Math.min(remaining, ship.qty);
         }
         return earliestExpiryBatch;
     }
@@ -654,7 +558,7 @@
                         <span>📅 ${s.date}</span>
                         <span class="expiry-timer ${timer.class}" onclick="showTimeDetailsForShipment('${s.product}', '${expiryDate.toISOString()}', ${hours}, '${s.date}')">⏰ ${timer.text}</span>
                     </div>
-                    <button class="small" onclick="removeShipment(${idx})" style="background:#dc3545; padding:8px; margin-top:8px;">❌ Удалить</button>
+                    <button class="small" onclick="removeShipment(${idx})">❌ Удалить</button>
                 </div>
             `;
         });
@@ -664,66 +568,49 @@
         const modal = document.getElementById('timeModal');
         const modalBody = document.getElementById('modalBody');
         if (!expiryDateISO) {
-            modalBody.innerHTML = `
-                <div class="detail-row"><span class="detail-label">📦 Продукт:</span><span class="detail-value">${product}</span></div>
-                <div class="detail-row"><span class="detail-label">⚠️ Статус:</span><span class="detail-value">Нет поставок</span></div>
-                <div class="detail-row"><span class="detail-label">📅 Срок:</span><span class="detail-value">${shelfLifeHours} ч.</span></div>
-                <div style="text-align:center; padding:16px; color:#999;">Добавьте поставки</div>
-            `;
+            modalBody.innerHTML = `<div class="detail-row"><span class="detail-label">📦 ${product}</span><span class="detail-value">Нет поставок</span></div>`;
             modal.style.display = 'block';
             return;
         }
         const expiryDate = new Date(expiryDateISO);
-        function updateModalTime() {
+        function updateModal() {
             const detailed = getDetailedTimeToExpiry(expiryDate);
             const now = new Date();
-            let statusHtml = detailed.isExpired ?
-                `<div class="countdown-seconds" style="background:#f8d7da; color:#dc3545;">⚠️ ${detailed.fullText}</div>` :
-                `<div class="countdown-seconds" style="background:#d4edda; color:#28a745;">${detailed.fullText}</div>`;
             modalBody.innerHTML = `
                 <div class="detail-row"><span class="detail-label">📦 Продукт:</span><span class="detail-value">${product}</span></div>
                 <div class="detail-row"><span class="detail-label">📅 Срок:</span><span class="detail-value">${shelfLifeHours} ч.</span></div>
                 <div class="detail-row"><span class="detail-label">📆 Истекает:</span><span class="detail-value">${expiryDate.toLocaleString('ru-RU')}</span></div>
                 <div class="detail-row"><span class="detail-label">🕐 Сейчас:</span><span class="detail-value">${now.toLocaleString('ru-RU')}</span></div>
-                ${statusHtml}
+                <div class="countdown-seconds" style="background:${detailed.isExpired ? '#f8d7da' : '#d4edda'}; color:${detailed.isExpired ? '#dc3545' : '#28a745'}">${detailed.fullText}</div>
                 <div class="detail-row"><span class="detail-label">📦 На витрине:</span><span class="detail-value">${qty} шт.</span></div>
             `;
         }
-        updateModalTime();
+        updateModal();
         modal.style.display = 'block';
         if (currentTimerInterval) clearInterval(currentTimerInterval);
-        currentTimerInterval = setInterval(() => {
-            if (modal.style.display === 'block') updateModalTime();
-            else clearInterval(currentTimerInterval);
-        }, 1000);
+        currentTimerInterval = setInterval(() => { if (modal.style.display === 'block') updateModal(); else clearInterval(currentTimerInterval); }, 1000);
     }
     
     function showTimeDetailsForShipment(product, expiryDateISO, hours, productionDate) {
         const modal = document.getElementById('timeModal');
         const modalBody = document.getElementById('modalBody');
         const expiryDate = new Date(expiryDateISO);
-        function updateModalTime() {
+        function updateModal() {
             const detailed = getDetailedTimeToExpiry(expiryDate);
             const now = new Date();
-            let statusHtml = detailed.isExpired ?
-                `<div class="countdown-seconds" style="background:#f8d7da; color:#dc3545;">⚠️ ${detailed.fullText}</div>` :
-                `<div class="countdown-seconds" style="background:#d4edda; color:#28a745;">${detailed.fullText}</div>`;
             modalBody.innerHTML = `
                 <div class="detail-row"><span class="detail-label">📦 Продукт:</span><span class="detail-value">${product}</span></div>
                 <div class="detail-row"><span class="detail-label">📅 Срок:</span><span class="detail-value">${hours} ч.</span></div>
                 <div class="detail-row"><span class="detail-label">🏭 Произведён:</span><span class="detail-value">${productionDate}</span></div>
                 <div class="detail-row"><span class="detail-label">📆 Истекает:</span><span class="detail-value">${expiryDate.toLocaleString('ru-RU')}</span></div>
                 <div class="detail-row"><span class="detail-label">🕐 Сейчас:</span><span class="detail-value">${now.toLocaleString('ru-RU')}</span></div>
-                ${statusHtml}
+                <div class="countdown-seconds" style="background:${detailed.isExpired ? '#f8d7da' : '#d4edda'}; color:${detailed.isExpired ? '#dc3545' : '#28a745'}">${detailed.fullText}</div>
             `;
         }
-        updateModalTime();
+        updateModal();
         modal.style.display = 'block';
         if (currentTimerInterval) clearInterval(currentTimerInterval);
-        currentTimerInterval = setInterval(() => {
-            if (modal.style.display === 'block') updateModalTime();
-            else clearInterval(currentTimerInterval);
-        }, 1000);
+        currentTimerInterval = setInterval(() => { if (modal.style.display === 'block') updateModal(); else clearInterval(currentTimerInterval); }, 1000);
     }
     
     function closeModal() {
@@ -767,7 +654,7 @@
     function updateDatalist() {
         const datalist = document.getElementById('productList');
         datalist.innerHTML = '';
-        allProducts.slice(0, 150).forEach(p => {
+        allProducts.forEach(p => {
             const option = document.createElement('option');
             option.value = p;
             datalist.appendChild(option);
@@ -779,7 +666,7 @@
         const datalist = document.getElementById('productList');
         datalist.innerHTML = '';
         const filtered = allProducts.filter(p => p.toLowerCase().includes(search));
-        filtered.slice(0, 80).forEach(p => {
+        filtered.slice(0, 100).forEach(p => {
             const option = document.createElement('option');
             option.value = p;
             datalist.appendChild(option);
@@ -873,8 +760,7 @@
         if (Object.keys(expired).length === 0) {
             resultDiv.innerHTML = '<div style="text-align:center; color:green; padding:16px;">✅ Просрочки нет!</div>';
         } else {
-            let html = '<div style="background:#fff3cd; padding:12px; border-radius:12px;">';
-            html += '<h3 style="color:#856404; margin:0 0 12px 0;">⚠️ СПИСАТЬ СЕГОДНЯ:</h3>';
+            let html = '<div style="background:#fff3cd; padding:12px; border-radius:12px;"><h3 style="color:#856404; margin:0 0 12px 0;">⚠️ СПИСАТЬ СЕГОДНЯ:</h3>';
             for (let [product, qty] of Object.entries(expired)) {
                 html += `<div class="expired-item"><div class="expired-name">📦 ${product}</div><div class="expired-qty">Списать: ${qty} шт.</div></div>`;
             }
