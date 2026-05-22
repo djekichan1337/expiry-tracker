@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Учёт просрочки - Кондитерская</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .header h1 { margin: 0; font-size: 28px; }
+        .header p { margin: 10px 0 0; opacity: 0.9; }
+        .save-status {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 1000;
+        }
+        .main-content { display: flex; gap: 20px; padding: 20px; flex-wrap: wrap; }
+        .panel {
+            flex: 1;
+            min-width: 350px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .panel h2 {
+            margin: 0 0 15px 0;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #dee2e6;
+            color: #495057;
+        }
+        .product-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        .product-item {
+            background: white;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .product-name { font-weight: 500; }
+        .product-qty { 
+            background: #e9ecef;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #495057;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            width: 100%;
+            transition: transform 0.2s;
+        }
+        button:hover { transform: translateY(-2px); }
+        .btn-danger { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+        .btn-success { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .btn-warning { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); }
+        .result-area {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .expired-item {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 5px;
+        }
+        .expired-name { font-weight: bold; color: #856404; }
+        .expired-qty { font-size: 20px; font-weight: bold; color: #dc3545; }
+        button.small { padding: 6px 12px; font-size: 12px; margin-top: 5px; width: auto; }
+        .search-box {
+            margin-bottom: 10px;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .button-group button {
+            flex: 1;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>🍰 Учёт просрочки на витрине</h1>
+        <p>Введите остатки на витрине и поставки — программа сама скажет, что списать</p>
+        <p style="font-size: 12px; margin-top: 5px;">💾 Данные автоматически сохраняются в браузере</p>
+    </div>
+    
+    <div class="main-content">
+        <!-- Левая панель: витрина -->
+        <div class="panel">
+            <h2>📦 Товары на витрине</h2>
+            <div id="shelfList" class="product-list"></div>
+            
+            <h3>➕ Добавить товар</h3>
+            <div class="search-box">
+                <input type="text" id="productSearch" placeholder="🔍 Поиск продукта..." onkeyup="filterProducts()">
+            </div>
+            <div class="input-group">
+                <label>Название продукта:</label>
+                <input type="text" id="shelfProduct" placeholder="Например: Чиабатта" list="productList" autocomplete="off">
+                <datalist id="productList"></datalist>
+            </div>
+            <div class="input-group">
+                <label>Количество:</label>
+                <input type="number" id="shelfQty" placeholder="шт.">
+            </div>
+            <div class="button-group">
+                <button onclick="addToShelf()">➕ Добавить на витрину</button>
+                <button onclick="clearShelf()" style="background:#dc3545">🗑 Очистить витрину</button>
+            </div>
+        </div>
+        
+        <!-- Правая панель: поставки -->
+        <div class="panel">
+            <h2>📄 Поставки по накладным</h2>
+            <div id="shipmentsList" class="product-list"></div>
+            
+            <h3>➕ Добавить поставку</h3>
+            <div class="input-group">
+                <label>Название продукта:</label>
+                <input type="text" id="shipProduct" placeholder="Например: Чиабатта" list="productList" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Дата производства:</label>
+                <input type="date" id="shipDate">
+            </div>
+            <div class="input-group">
+                <label>Количество:</label>
+                <input type="number" id="shipQty" placeholder="шт.">
+            </div>
+            <div class="button-group">
+                <button onclick="addShipment()">📄 Добавить поставку</button>
+                <button onclick="clearShipments()" style="background:#dc3545">🗑 Очистить поставки</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Кнопки действий -->
+    <div style="display: flex; gap: 10px; padding: 0 20px 20px 20px;">
+        <button class="btn-success" onclick="calculateExpired()" style="flex:2">🔥 РАССЧИТАТЬ ПРОСРОЧКУ</button>
+        <button class="btn-warning" onclick="exportData()" style="flex:1">📥 Экспорт</button>
+        <button onclick="clearAll()" style="flex:1; background:#6c757d">🗑 Очистить всё</button>
+    </div>
+    
+    <!-- Результат -->
+    <div id="resultArea" class="result-area" style="margin: 0 20px 20px 20px; background:#f8f9fa">
+        <h3>📋 Результаты расчёта</h3>
+        <div id="resultText">Нажмите «Рассчитать просрочку»</div>
+    </div>
+</div>
+
+<div id="saveStatus" class="save-status">💾 Сохранено</div>
+
+<script>
+    // ======================
+    // ПОЛНАЯ БАЗА СРОКОВ ГОДНОСТИ (из вашей таблицы)
+    // ======================
+    const defaultShelfLife = {
+        // Хлеб
+        "Чиабатта": 24, "Бабушкин рецепт": 24, "Хлеб Деревенский": 24, "Хлеб ржаной 100%": 48,
+        "Хлеб зерновой": 48, "Хлеб солодовый с кориандром": 48, "Хлеб бородинский": 48,
+        "Батон нарезной": 24, "Багет французский": 24, "Батон 8 злаков": 48,
+        "Зеленая гречка": 48, "Чесночный": 48, "Зерновой белый": 24, "Багет на закваске": 24,
+        
+        // Пирожки
+        "Сосиска в тесте": 36, "Сосиска с сыром в слойке": 36, "Пирожок с луком и яйцом": 36,
+        "Пирожок с капустой": 36, "Пирожок с картошкой": 36, "Пирожок с курицей": 36,
+        "Пирожок с яблоком": 36, "Грилата с картофелем и грибами": 36, "Грилата с брынзой и зеленью": 36,
+        "Грилата с курицей": 36, "Грилата с мясом": 36,
+        
+        // Сэндвичи
+        "Киш с курицей": 48, "Киш с ветчиной и грибами": 48, "Киш 4 сыра": 48,
+        "Багет с ветчиной и сыром": 24, "Чиабатта с индейкой": 24, "Сэндвич с семгой": 24,
+        "Сэндвич с тунцом": 24, "Багет с моцареллой": 24, "Круассан с моцареллой": 24,
+        "Круассан с курицей": 24, "Круассан с рыбой": 24, "Круассан с ветчиной и сыром": 24,
+        "Круассан с ветчиной и яйцом пашот": 24, "Лаваш сливочный с курицей": 24,
+        "Лаваш Цезарь": 24, "Лаваш Чикен": 24, "Лаваш Шримп": 24,
+        "Сэндвич с куриными стрипсами": 24, "Сэндвич с рваной говядиной": 24,
+        
+        // Мягкая витрина
+        "Круассан натуральный": 36, "Круассан с сыром": 36, "Круассан с ванильным кремом": 36,
+        "Круассан миндальный": 36, "Круассан с шоколадом": 36, "Круассан с творогом": 24,
+        "Круассан с абрикосом": 36, "Круассан с клубникой и шоколадом": 24,
+        "Бриошь с черной смородиной": 36, "Бриошь с шоколадом": 36, "Улитка яблочная": 36,
+        "Улитка с изюмом": 36, "Улитка с корицей": 36, "Булочка с маком": 36,
+        "Косичка с шоколадом": 36, "Маффин шоколадный": 72, "Маффин классический": 72,
+        "Ромовая баба": 48, "Сочник": 48, "Слойка Берлинская": 36, "Шатель": 36,
+        "Донатс малиновый": 48, "Донатс шоколадный": 48, "Пончик фисташковый": 48,
+        "Штрудель яблочный": 36, "Шоссон с вишней": 24, "Булочка Синнамон": 36,
+        "Синнамон с фисташкой": 36,
+        
+        // Пирожные
+        "Трубочка с белковым кремом": 48, "Эклер фисташковый": 48, "Эклер шоколадный": 48,
+        "Эклер ванильный": 48, "Эклер миндальный": 48, "Эклер Сникерс": 48,
+        "Тарталетка с клубникой": 48, "Тарталетка с голубикой": 48, "Тарталетка с малиной": 48,
+        "Тарталетка ассорти": 48, "Тарталетка с белковым кремом": 48,
+        "Пирожное Картошка": 72, "Пирожное Герман": 72, "Пирожное Медовик": 72,
+        "Пирожное Наполеон": 72, "Пирожное Вацлавское": 72, "Пирожное Чизкейк": 72,
+        "Чизкейк Тропик": 72, "Профитроли со сливками": 48, "Кольцо с творогом": 24,
+        "Чизкейк Нью-Йорк": 48, "Соленая карамель": 72, "Тирамису в стакане": 72,
+        "Пирожное Морковное": 72, "Десерт Сердце малина": 48, "Пудинг Чиа Манго": 48,
+        "Десерт Манго-мята": 48, "Десерт Роше": 48, "Десерт Фисташковый": 72,
+        "Десерт 3 шоколада": 72, "Кофейное зерно": 48, "Чизкейк черная смородина": 48,
+        
+        // Торты
+        "Торт Наполеон": 72, "Торт Медовик": 72, "Торт Герман": 72,
+        "Торт Красный бархат": 72, "Торт Шоколадно-клубничный": 72,
+        "Торт Фисташковая меренга": 72, "Торт Фирменный": 72,
+        
+        // Печенье
+        "Печенье Морковное": 120, "Печенье Фитнес": 360, "Рогалики малина": 360,
+        "Амаретти": 360, "Бискотти": 360, "Венское": 360, "Печенье Орешки": 168,
+        "Макарун ваниль": 96, "Макарун черная смородина": 96, "Макарун фисташка": 96,
+        "Макарун шоколад": 96, "Апельсиновое печенье с шоколадом": 240,
+        "Шоколадное печенье с фундуком": 288, "Овсяное печенье с изюмом": 288,
+        "Безе мини": 360, "Безе миндальное": 360, "Безе кофейное": 360,
+        "Безе классическое": 360, "Печенье Мадлен": 168,
+        
+        // Супы
+        "Борщ с говядиной": 48, "Суп фирменный сырный": 48, "Крем-суп тыквенный": 48,
+        "Рассольник": 48, "Солянка": 48, "Том Ям": 48,
+        
+        // Вторые блюда
+        "Строганов с курицей": 48, "Картофельное пюре с минтаем": 48, "Говядина с овощами": 48,
+        "Куриный шашлычок с печеным картофелем": 48, "Удон с соусом Том-Ям": 48,
+        "Рис с креветками по-тайски": 48, "Треска с рисом по-тайски": 48,
+        "Паста Пенне с курицей и фасолью": 48, "Индейка с булгуром": 48,
+        "Чахобили с гречкой и курицей": 48, "Филе минтая с рисом и овощами": 48,
+        
+        // Завтраки
+        "Сырники с ягодами": 24, "Сырники со сметаной": 48, "Запеканка с клубникой": 24,
+        "Овсяная каша": 24, "Омлет": 24, "Яичница-глазунья": 24, "Блины со сметаной": 24,
+        
+        // Салаты
+        "Салат Цезарь": 24, "Салат киноа с креветками": 24, "Поке боул с лососем": 24,
+        "Поке боул с курицей": 24, "Сельдь под шубой": 24, "Винегрет": 24,
+        "Салат Мимоза": 24, "Салат Столичный с курицей": 24
+    };
+    
+    // Копируем базу для возможности добавления новых продуктов
+    let shelfLife = { ...defaultShelfLife };
+    
+    // Список всех продуктов для автодополнения
+    let allProducts = Object.keys(shelfLife).sort();
+    
+    // Данные
+    let shelf = {};
+    let shipments = [];
+    
+    // ======================
+    // РАБОТА С LOCALSTORAGE (сохранение данных)
+    // ======================
+    function showSaveStatus() {
+        const status = document.getElementById('saveStatus');
+        status.style.opacity = '1';
+        setTimeout(() => {
+            status.style.opacity = '0';
+        }, 1500);
+    }
+    
+    function saveAllData() {
+        const dataToSave = {
+            shelf: shelf,
+            shipments: shipments,
+            customProducts: Object.keys(shelfLife).filter(p => !defaultShelfLife.hasOwnProperty(p))
+        };
+        
+        // Сохраняем основные данные
+        localStorage.setItem('expiry_shelf', JSON.stringify(shelf));
+        localStorage.setItem('expiry_shipments', JSON.stringify(shipments));
+        
+        // Сохраняем пользовательские продукты и их сроки
+        const customProductsData = {};
+        for (let product of dataToSave.customProducts) {
+            customProductsData[product] = shelfLife[product];
+        }
+        localStorage.setItem('expiry_custom_products', JSON.stringify(customProductsData));
+        
+        showSaveStatus();
+    }
+    
+    function loadAllData() {
+        // Загружаем витрину
+        const savedShelf = localStorage.getItem('expiry_shelf');
+        if (savedShelf) {
+            shelf = JSON.parse(savedShelf);
+        }
+        
+        // Загружаем поставки
+        const savedShipments = localStorage.getItem('expiry_shipments');
+        if (savedShipments) {
+            shipments = JSON.parse(savedShipments);
+        }
+        
+        // Загружаем пользовательские продукты
+        const customProducts = localStorage.getItem('expiry_custom_products');
+        if (customProducts) {
+            const customData = JSON.parse(customProducts);
+            for (let [product, hours] of Object.entries(customData)) {
+                shelfLife[product] = hours;
+                if (!allProducts.includes(product)) {
+                    allProducts.push(product);
+                }
+            }
+            allProducts.sort();
+        }
+    }
+    
+    // Сохраняем при любом изменении данных
+    function autoSave() {
+        saveAllData();
+    }
+    
+    // Обёртки для функций с автосохранением
+    const originalAddToShelf = addToShelf;
+    const originalAddShipment = addShipment;
+    const originalRemoveShipment = removeShipment;
+    const originalClearShelf = clearShelf;
+    const originalClearShipments = clearShipments;
+    const originalClearAll = clearAll;
+    
+    // Заполнить datalist
+    function updateDatalist() {
+        const datalist = document.getElementById('productList');
+        datalist.innerHTML = '';
+        allProducts.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p;
+            datalist.appendChild(option);
+        });
+    }
+    
+    // Фильтрация продуктов
+    function filterProducts() {
+        const search = document.getElementById('productSearch').value.toLowerCase();
+        const datalist = document.getElementById('productList');
+        datalist.innerHTML = '';
+        const filtered = allProducts.filter(p => p.toLowerCase().includes(search));
+        filtered.slice(0, 50).forEach(p => {
+            const option = document.createElement('option');
+            option.value = p;
+            datalist.appendChild(option);
+        });
+    }
+    
+    // Поиск продукта
+    function findProduct(name) {
+        const normalized = name.toLowerCase().trim();
+        for (let key of allProducts) {
+            if (key.toLowerCase() === normalized) return key;
+        }
+        for (let key of allProducts) {
+            if (key.toLowerCase().includes(normalized)) return key;
+        }
+        return null;
+    }
+    
+    // Обновить отображение витрины
+    function updateShelfDisplay() {
+        const container = document.getElementById('shelfList');
+        container.innerHTML = '';
+        for (let [product, qty] of Object.entries(shelf)) {
+            container.innerHTML += `
+                <div class="product-item">
+                    <span class="product-name">${product}</span>
+                    <span class="product-qty">${qty} шт.</span>
+                </div>
+            `;
+        }
+        if (Object.keys(shelf).length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#999;">Нет товаров</div>';
+        }
+    }
+    
+    // Обновить отображение поставок
+    function updateShipmentsDisplay() {
+        const container = document.getElementById('shipmentsList');
+        container.innerHTML = '';
+        shipments.forEach((s, idx) => {
+            container.innerHTML += `
+                <div class="product-item">
+                    <div>
+                        <div class="product-name">${s.product}</div>
+                        <div style="font-size:12px; color:#666;">${s.date} | ${s.qty} шт.</div>
+                    </div>
+                    <button class="small" onclick="removeShipment(${idx})" style="background:#dc3545; padding:5px 10px">❌</button>
+                </div>
+            `;
+        });
+        if (shipments.length === 0) {
+            container.innerHTML = '<div style="text-align:center; color:#999;">Нет поставок</div>';
+        }
+    }
+    
+    // Добавить на витрину
+    function addToShelf() {
+        let name = document.getElementById('shelfProduct').value.trim();
+        let qty = parseInt(document.getElementById('shelfQty').value);
+        if (!name || isNaN(qty) || qty <= 0) {
+            alert('Введите название и количество');
+            return;
+        }
+        let product = findProduct(name);
+        if (!product) {
+            if (confirm(`Продукт "${name}" не найден. Добавить в базу со сроком 48 часов?`)) {
+                product = name;
+                shelfLife[product] = 48;
+                allProducts.push(product);
+                allProducts.sort();
+                updateDatalist();
+            } else return;
+        }
+        shelf[product] = (shelf[product] || 0) + qty;
+        updateShelfDisplay();
+        document.getElementById('shelfProduct').value = '';
+        document.getElementById('shelfQty').value = '';
+        autoSave();
+    }
+    
+    // Добавить поставку
+    function addShipment() {
+        let name = document.getElementById('shipProduct').value.trim();
+        let date = document.getElementById('shipDate').value;
+        let qty = parseInt(document.getElementById('shipQty').value);
+        if (!name || !date || isNaN(qty) || qty <= 0) {
+            alert('Заполните все поля');
+            return;
+        }
+        let product = findProduct(name);
+        if (!product) {
+            if (confirm(`Продукт "${name}" не найден. Добавить в базу со сроком 48 часов?`)) {
+                product = name;
+                shelfLife[product] = 48;
+                allProducts.push(product);
+                allProducts.sort();
+                updateDatalist();
+            } else return;
+        }
+        shipments.push({product, date, qty});
+        updateShipmentsDisplay();
+        document.getElementById('shipProduct').value = '';
+        document.getElementById('shipDate').value = '';
+        document.getElementById('shipQty').value = '';
+        autoSave();
+    }
+    
+    // Удалить поставку
+    function removeShipment(idx) {
+        shipments.splice(idx, 1);
+        updateShipmentsDisplay();
+        autoSave();
+    }
+    
+    // Очистить витрину
+    function clearShelf() {
+        if (confirm('Очистить всю витрину?')) {
+            shelf = {};
+            updateShelfDisplay();
+            autoSave();
+        }
+    }
+    
+    // Очистить поставки
+    function clearShipments() {
+        if (confirm('Очистить все поставки?')) {
+            shipments = [];
+            updateShipmentsDisplay();
+            autoSave();
+        }
+    }
+    
+    // Рассчитать просрочку
+    function calculateExpired() {
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        
+        let shipmentsByProduct = {};
+        for (let s of shipments) {
+            if (!shipmentsByProduct[s.product]) shipmentsByProduct[s.product] = [];
+            shipmentsByProduct[s.product].push({date: new Date(s.date), qty: s.qty});
+        }
+        for (let prod in shipmentsByProduct) {
+            shipmentsByProduct[prod].sort((a,b) => a.date - b.date);
+        }
+        
+        let expired = {};
+        
+        for (let [product, shelfQty] of Object.entries(shelf)) {
+            if (!shipmentsByProduct[product]) continue;
+            
+            let remaining = shelfQty;
+            let expiredQty = 0;
+            
+            for (let ship of shipmentsByProduct[product]) {
+                if (remaining <= 0) break;
+                let take = Math.min(remaining, ship.qty);
+                let hours = shelfLife[product] || 48;
+                let expiryDate = new Date(ship.date);
+                expiryDate.setHours(expiryDate.getHours() + hours);
+                
+                if (today > expiryDate) {
+                    expiredQty += take;
+                }
+                remaining -= take;
+            }
+            
+            if (expiredQty > 0) {
+                expired[product] = expiredQty;
+            }
+        }
+        
+        const resultDiv = document.getElementById('resultText');
+        if (Object.keys(expired).length === 0) {
+            resultDiv.innerHTML = '<div style="text-align:center; color:green; padding:20px;">✅ Просроченных товаров нет! ✅</div>';
+        } else {
+            let html = '<div style="background:#fff3cd; padding:15px; border-radius:10px;">';
+            html += '<h3 style="color:#856404; margin-top:0;">⚠️ СПИСАТЬ СЕГОДНЯ:</h3>';
+            for (let [product, qty] of Object.entries(expired)) {
+                const shelfLifeHours = shelfLife[product] || 48;
+                html += `
+                    <div class="expired-item">
+                        <div class="expired-name">📦 ${product}</div>
+                        <div style="font-size:14px; color:#666;">Срок годности: ${shelfLifeHours} ч.</div>
+                        <div style="font-size:24px; font-weight:bold; color:#dc3545; margin-top:5px;">Списать: ${qty} шт.</div>
+                    </div>
+                `;
+            }
+            html += `<button onclick="confirmWriteoff(${JSON.stringify(expired).replace(/"/g, '&quot;')})" style="background:#28a745; margin-top:15px;">✅ ПОДТВЕРДИТЬ СПИСАНИЕ</button>`;
+            html += '</div>';
+            resultDiv.innerHTML = html;
+        }
+    }
+    
+    // Подтвердить списание
+    function confirmWriteoff(expired) {
+        for (let product in expired) {
+            if (shelf[product]) {
+                shelf[product] -= expired[product];
+                if (shelf[product] <= 0) delete shelf[product];
+            }
+        }
+        updateShelfDisplay();
+        autoSave();
+        document.getElementById('resultText').innerHTML = '<div style="text-align:center; color:green; padding:20px;">✅ Списание выполнено! Остатки обновлены.</div>';
+        setTimeout(() => {
+            document.getElementById('resultText').innerHTML = 'Нажмите «Рассчитать просрочку»';
+        }, 2000);
+    }
+    
+    // Экспорт данных в JSON
+    function exportData() {
+        const exportObj = {
+            shelf: shelf,
+            shipments: shipments,
+            exportDate: new Date().toISOString()
+        };
+        const dataStr = JSON.stringify(exportObj, null, 2);
+        const blob = new Blob([dataStr], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `expiry_export_${new Date().toISOString().slice(0,19)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert('Данные экспортированы!');
+    }
+    
+    // Очистить всё
+    function clearAll() {
+        if (confirm('Очистить ВСЕ данные? Это действие нельзя отменить.')) {
+            shelf = {};
+            shipments = [];
+            // Не удаляем пользовательские продукты из базы, только очищаем данные
+            updateShelfDisplay();
+            updateShipmentsDisplay();
+            document.getElementById('resultText').innerHTML = 'Нажмите «Рассчитать просрочку»';
+            autoSave();
+        }
+    }
+    
+    // Установить сегодняшнюю дату по умолчанию
+    document.getElementById('shipDate').valueAsDate = new Date();
+    
+    // Загружаем сохранённые данные и инициализируем
+    loadAllData();
+    updateDatalist();
+    updateShelfDisplay();
+    updateShipmentsDisplay();
+</script>
+</body>
+</html>
